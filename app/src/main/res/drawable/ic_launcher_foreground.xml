@@ -6,35 +6,48 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- سیلوئت دختر با دست بلند — صورتی مینیمال -->
-    <path
-        android:pathData="M54,32
-            a6,6 0 1,0 0.01,0
-            z
-            M48,44
-            l6,-4 6,4
-            l-1,10
-            l-4,0
-            l0,14
-            l-4,0
-            l0,-14
-            l-4,0
-            z
-            M58,48
-            l10,-16
-            l3,2
-            l-10,16
-            z"
-        android:fillColor="#FFB8CC"
-        android:fillAlpha="0.95" />
+    <!-- پس‌زمینه: گرادیانت رزگلد تیره لوکس -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0" android:startY="0"
+                android:endX="108" android:endY="108"
+                android:startColor="#8B3A52"
+                android:centerColor="#B65B72"
+                android:endColor="#6B2A40" />
+        </aapt:attr>
+    </path>
 
-    <!-- درخشش ملایم اطراف -->
+    <!-- افکت شیشه‌ای: هایلایت بالا-چپ -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="22" android:centerY="22"
+                android:gradientRadius="95"
+                android:startColor="#50FFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- افکت شیشه‌ای: سایه پایین-راست -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="95" android:centerY="95"
+                android:gradientRadius="85"
+                android:startColor="#35000000"
+                android:endColor="#00000000" />
+        </aapt:attr>
+    </path>
+
+    <!-- لبه‌ی شیشه‌ای -->
     <path
-        android:pathData="M54,24
-            a30,30 0 1,0 0.01,0
-            z"
-        android:strokeWidth="1.5"
-        android:strokeColor="#60FFFFFF"
+        android:pathData="M0,0h108v108h-108z"
+        android:strokeWidth="2"
+        android:strokeColor="#55FFFFFF"
         android:fillColor="#00000000" />
 
 </vector>
