@@ -1,120 +1,113 @@
 /* =========================================================
-   VistaApplication.java  —  کلاس Application اپ
-   مسیر: app/src/main/java/app/vista/VistaApplication.java
-   =========================================================
-   📌 کلاس Application سراسری اپ
-   📌 مدیریت خطاهای سراسری
-   📌 پاکسازی حافظه در بسته شدن اپ
-   📌 فعال‌سازی WebView debug در حالت Debug
+   SplashActivity.java  —  صفحه‌ی لود اولیه — Vista1 (MuMu)
+   مسیر: app/src/main/java/app/vista/SplashActivity.java
+   نسخه: 1.3.07
    ========================================================= */
 
 package app.vista;
 
-import android.app.Application;
-import android.os.Build;
-import android.util.Log;
-import android.webkit.WebView;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
-import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class VistaApplication extends Application {
+public class SplashActivity extends AppCompatActivity {
 
-    private static final String TAG = "VistaApp";
+    private static final long MIN_SPLASH_TIME_MS = 1500L;
+    private static final long MAX_SPLASH_TIME_MS = 8000L;
 
-    // ===== نسخه‌ی اپ =====
-    public static final String APP_VERSION = "1.0.0";
+    private ImageView splashLogo;
+    private TextView splashAppName;
+    private TextView splashWelcome;
+    private TextView splashLoadingText;
+    private ProgressBar splashProgress;
 
-    // ===== Reference استاتیک =====
-    private static VistaApplication sInstance;
+    private long startTime;
+    private boolean navigated = false;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
-    public void onCreate() {
-        super.onCreate();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash);
 
-        sInstance = this;
+        startTime = System.currentTimeMillis();
 
-        // ===== فعال‌سازی WebView debug در حالت Debug =====
-        if (BuildConfig.DEBUG) {
-            try {
-                WebView.setWebContentsDebuggingEnabled(true);
-                Log.d(TAG, "WebView debugging enabled");
-            } catch (Exception e) {
-                Log.e(TAG, "Error enabling WebView debugging: " + e.getMessage());
-            }
-        } else {
-            try {
-                WebView.setWebContentsDebuggingEnabled(false);
-            } catch (Exception e) {
-                // سکوت
-            }
-        }
+        splashLogo = findViewById(R.id.splashLogo);
+        splashAppName = findViewById(R.id.splashAppName);
+        splashWelcome = findViewById(R.id.splashWelcome);
+        splashLoadingText = findViewById(R.id.splashLoadingText);
+        splashProgress = findViewById(R.id.splashProgress);
 
-        // ===== نصب هندلر خطای سراسری =====
-        installGlobalExceptionHandler();
+        // انیمیشن Fade-in برای همه اجزا
+        animateFadeIn(splashLogo, 0);
+        animateFadeIn(splashAppName, 200);
+        animateFadeIn(splashWelcome, 400);
+        animateFadeIn(splashLoadingText, 600);
 
-        Log.i(TAG, "Vista Application started — v" + APP_VERSION);
+        // شروع پیش‌بارگذاری
+        startPreload();
     }
 
-    /**
-     * نصب هندلر خطای سراسری
-     * اگه اپ کرش کرد → لاگ بشه (در Release هم)
-     */
-    private void installGlobalExceptionHandler() {
-        final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+    private void animateFadeIn(View view, long delayMs) {
+        if (view == null) return;
+        view.setAlpha(0f);
+        AlphaAnimation anim = new AlphaAnimation(0f, 1f);
+        anim.setDuration(600);
+        anim.setStartOffset(delayMs);
+        anim.setFillAfter(true);
+        view.startAnimation(anim);
+    }
 
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+    private void startPreload() {
+        PreloadManager.preload(getApplicationContext(), new PreloadManager.PreloadCallback() {
             @Override
-            public void uncaughtException(@NonNull Thread thread, @NonNull Throwable throwable) {
-                try {
-                    Log.e(TAG, "Uncaught exception on thread: " + thread.getName(), throwable);
-                } catch (Exception e) {
-                    // سکوت
-                }
+            public void onPageLoaded() {
+                long elapsed = System.currentTimeMillis() - startTime;
+                long remaining = MIN_SPLASH_TIME_MS - elapsed;
+                if (remaining < 0) remaining = 0;
+                handler.postDelayed(() -> navigateToMain(true), remaining);
+            }
 
-                // ===== پاکسازی WebView cache =====
-                try {
-                    PreloadManager.clear();
-                } catch (Exception e) {
-                    // سکوت
-                }
-
-                // ===== فراخوانی هندلر پیش‌فرض =====
-                if (defaultHandler != null) {
-                    defaultHandler.uncaughtException(thread, throwable);
-                } else {
-                    System.exit(1);
-                }
+            @Override
+            public void onPageFailed() {
+                long elapsed = System.currentTimeMillis() - startTime;
+                long remaining = MIN_SPLASH_TIME_MS - elapsed;
+                if (remaining < 0) remaining = 0;
+                handler.postDelayed(() -> navigateToMain(false), remaining);
             }
         });
+
+        // Timeout اضطراری
+        handler.postDelayed(() -> {
+            if (!navigated) {
+                navigateToMain(false);
+            }
+        }, MAX_SPLASH_TIME_MS);
+    }
+
+    private void navigateToMain(boolean preloaded) {
+        if (navigated) return;
+        navigated = true;
+
+        Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+        intent.putExtra("page_preloaded", preloaded);
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        finish();
     }
 
     @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        Log.w(TAG, "onLowMemory — clearing caches");
-
-        // ===== پاکسازی WebView cache =====
-        try {
-            PreloadManager.clear();
-        } catch (Exception e) {
-            // سکوت
-        }
-    }
-
-    @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-
-        // ===== اگه حافظه خیلی کم بود =====
-        if (level >= TRIM_MEMORY_RUNNING_LOW) {
-            Log.w(TAG, "onTrimMemory: " + level);
-        }
-    }
-
-    /**
-     * گرفتن instance سراسری
-     */
-    public static VistaApplication getInstance() {
-        return sInstance;
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 }
