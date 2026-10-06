@@ -1,7 +1,6 @@
 /* =========================================================
-   MainActivity.java  —  صفحه‌ی اصلی (WebView) — Vista1 (MuMu)
-   مسیر: app/src/main/java/app/vista/MainActivity.java
-   نسخه: 1.3.07
+   MainActivity.java  —  WebView حرفه‌ای — Vista1 (MuMu)
+   نسخه: 1.4.0
    ========================================================= */
 
 package app.vista;
@@ -20,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,19 +55,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    // ====================================================
     // 🔴 URL سایت — Vista1 (MuMu)
-    // ====================================================
     private static final String BASE_URL = "https://rosha-24.ir/app/app1/";
     private static final String BASE_DOMAIN = "rosha-24.ir";
-
-    private static final String TEL_PREFIX = "tel:";
-    private static final String MAIL_PREFIX = "mailto:";
-    private static final String SMS_PREFIX = "sms:";
-    private static final String WHATSAPP_PREFIX = "whatsapp:";
-    private static final String TG_PREFIX = "tg:";
-    private static final String INSTAGRAM_PREFIX = "instagram:";
-    private static final String MARKET_PREFIX = "market:";
 
     private WebView webView;
     private ProgressBar progressBar;
@@ -80,16 +70,12 @@ public class MainActivity extends AppCompatActivity {
     private long lastBackPressTime = 0L;
     private boolean errorShown = false;
 
-    private int colorGold;
-    private int colorNavyDark;
     private int colorBg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        colorGold = ContextCompat.getColor(this, R.color.gold_primary);
-        colorNavyDark = ContextCompat.getColor(this, R.color.navy_dark);
         colorBg = ContextCompat.getColor(this, R.color.bg_main);
 
         setupStatusBar();
@@ -172,33 +158,60 @@ public class MainActivity extends AppCompatActivity {
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
         settings.setTextZoom(100);
-        settings.setUserAgentString(settings.getUserAgentString() + " MuMuApp/1.3.07");
+        settings.setUserAgentString(settings.getUserAgentString() + " MuMuApp/1.4.0");
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
-
-        // ====================================================
-        // 🔴 حل مشکل iframe / لینک‌های ورود
-        // ====================================================
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
+
+        // 🔴 کلید حل مشکل: پنجره‌ی جدید تو خود WebView باز شه
         settings.setSupportMultipleWindows(false);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
         webView.setBackgroundColor(colorBg);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        webView.setVerticalScrollBarEnabled(false);
+        webView.setHorizontalScrollBarEnabled(false);
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
-
-        // ====================================================
-        // 🔴 حل مشکل کوکی / لینک‌های ورود
-        // ====================================================
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
         webView.setWebChromeClient(new WebChromeClient() {
+
+            // 🔴 کلید دوم: هر پنجره‌ی جدید تو همین WebView لود شه
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog,
+                                          boolean isUserGesture, Message resultMsg) {
+                WebView newWebView = new WebView(MainActivity.this);
+                WebSettings s = newWebView.getSettings();
+                s.setJavaScriptEnabled(true);
+                s.setDomStorageEnabled(true);
+                s.setSupportMultipleWindows(true);
+
+                newWebView.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
+                        webView.loadUrl(req.getUrl().toString());
+                        return true;
+                    }
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView v, String url) {
+                        webView.loadUrl(url);
+                        return true;
+                    }
+                });
+
+                WebView.WebViewTransport transport =
+                        (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(newWebView);
+                resultMsg.sendToTarget();
+                return true;
+            }
+
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
@@ -210,10 +223,13 @@ public class MainActivity extends AppCompatActivity {
                     progressBar.setVisibility(View.GONE);
                 }
             }
+
             @Override
-            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+            public void onGeolocationPermissionsShowPrompt(String origin,
+                                        GeolocationPermissions.Callback callback) {
                 callback.invoke(origin, false, false);
             }
+
             @Override
             public void onPermissionRequest(PermissionRequest request) {
                 request.deny();
@@ -221,11 +237,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         webView.setWebViewClient(new WebViewClient() {
+
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 errorShown = false;
             }
+
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
@@ -236,16 +254,20 @@ public class MainActivity extends AppCompatActivity {
                     errorShown = false;
                 }
             }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return handleUrl(request.getUrl().toString());
             }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return handleUrl(url);
             }
+
             @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            public void onReceivedError(WebView view, WebResourceRequest request,
+                                        WebResourceError error) {
                 super.onReceivedError(view, request, error);
                 if (request.isForMainFrame()) {
                     if (!isNetworkAvailable()) {
@@ -257,8 +279,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+
             @Override
-            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            public void onReceivedHttpError(WebView view, WebResourceRequest request,
+                                            WebResourceResponse errorResponse) {
                 super.onReceivedHttpError(view, request, errorResponse);
                 if (request.isForMainFrame()) {
                     int status = errorResponse != null ? errorResponse.getStatusCode() : -1;
@@ -279,15 +303,20 @@ public class MainActivity extends AppCompatActivity {
                 request.setDescription(getString(R.string.download_started));
                 request.setTitle(fileName);
                 request.allowScanningByMediaScanner();
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-                DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                request.setNotificationVisibility(
+                        DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setDestinationInExternalPublicDir(
+                        Environment.DIRECTORY_DOWNLOADS, fileName);
+                DownloadManager dm =
+                        (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 if (dm != null) {
                     dm.enqueue(request);
-                    Toast.makeText(MainActivity.this, getString(R.string.download_started), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this,
+                            getString(R.string.download_started), Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
-                Toast.makeText(MainActivity.this, getString(R.string.download_failed), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this,
+                        getString(R.string.download_failed), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -297,8 +326,9 @@ public class MainActivity extends AppCompatActivity {
             if (cached.getParent() != null) {
                 ((ViewGroup) cached.getParent()).removeView(cached);
             }
-            android.view.ViewGroup.LayoutParams params = new android.view.ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
             cached.setLayoutParams(params);
             ViewGroup root = findViewById(R.id.mainRoot);
             root.addView(cached, 0);
@@ -314,44 +344,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ====================================================
-    // 🔴 منطق اصلی — تشخیص لینک داخلی/خارجی
+    // 🔴 منطق جدید — همه‌چیز داخل بمونه مگر لینک خارجی
     // ====================================================
     private boolean handleUrl(String url) {
         if (url == null || url.isEmpty()) return false;
 
         String lowerUrl = url.toLowerCase(Locale.ROOT);
 
-        // 1️⃣ پروتکل‌های خارجی (تلفن، ایمیل، واتساپ، تلگرام، اینستاگرام، مارکت)
-        if (lowerUrl.startsWith(TEL_PREFIX) || lowerUrl.startsWith(MAIL_PREFIX) ||
-            lowerUrl.startsWith(SMS_PREFIX) ||
-            lowerUrl.startsWith(WHATSAPP_PREFIX) || lowerUrl.contains("wa.me/") ||
-            lowerUrl.startsWith(TG_PREFIX) || lowerUrl.contains("t.me/") ||
-            lowerUrl.startsWith(INSTAGRAM_PREFIX) || lowerUrl.contains("instagram.com/") ||
-            lowerUrl.startsWith(MARKET_PREFIX)) {
+        // 1️⃣ فقط پروتکل‌های واقعاً خارجی → برو بیرون
+        if (lowerUrl.startsWith("tel:") ||
+            lowerUrl.startsWith("mailto:") ||
+            lowerUrl.startsWith("sms:") ||
+            lowerUrl.startsWith("whatsapp:") ||
+            lowerUrl.startsWith("tg:") ||
+            lowerUrl.startsWith("instagram:") ||
+            lowerUrl.startsWith("market:") ||
+            lowerUrl.startsWith("intent:") ||
+            lowerUrl.startsWith("geo:")) {
+
+            if (lowerUrl.startsWith("intent:")) {
+                try {
+                    Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Log.e(TAG, "intent parse error");
+                }
+                return true;
+            }
             openExternal(url);
             return true;
         }
 
-        // 2️⃣ http / https → همه داخل WebView
+        // 2️⃣ http / https → همه داخل WebView بمونن (حتی دامنه‌های دیگه)
         if (lowerUrl.startsWith("http://") || lowerUrl.startsWith("https://")) {
             return false;
         }
 
-        // 3️⃣ intent://
-        if (lowerUrl.startsWith("intent:")) {
-            try {
-                Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-                if (intent != null) {
-                    startActivity(intent);
-                    return true;
-                }
-            } catch (Exception e) {
-                return true;
-            }
-            return true;
-        }
-
-        // 4️⃣ بقیه پروتکل‌ها رو نادیده بگیر
+        // 3️⃣ بقیه → نادیده بگیر
         return true;
     }
 
@@ -373,7 +402,8 @@ public class MainActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "اپلیکیشنی برای باز کردن این لینک پیدا نشد", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "اپلیکیشنی برای باز کردن این لینک پیدا نشد",
+                    Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Log.e(TAG, "openExternal error: " + e.getMessage());
         }
@@ -398,10 +428,12 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isNetworkAvailable() {
         try {
-            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager cm =
+                    (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             if (cm == null) return false;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                NetworkCapabilities capabilities = cm.getNetworkCapabilities(cm.getActiveNetwork());
+                NetworkCapabilities capabilities =
+                        cm.getNetworkCapabilities(cm.getActiveNetwork());
                 if (capabilities == null) return false;
                 return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
             } else {
@@ -438,12 +470,12 @@ public class MainActivity extends AppCompatActivity {
         }
         lastBackPressTime = now;
         new AlertDialog.Builder(this)
-            .setTitle(R.string.exit_title)
-            .setMessage(R.string.exit_message)
-            .setPositiveButton(R.string.exit_yes, (dialog, which) -> finishAffinity())
-            .setNegativeButton(R.string.exit_no, (dialog, which) -> dialog.dismiss())
-            .setCancelable(true)
-            .show();
+                .setTitle(R.string.exit_title)
+                .setMessage(R.string.exit_message)
+                .setPositiveButton(R.string.exit_yes, (dialog, which) -> finishAffinity())
+                .setNegativeButton(R.string.exit_no, (dialog, which) -> dialog.dismiss())
+                .setCancelable(true)
+                .show();
     }
 
     @Override
@@ -486,4 +518,4 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onDestroy();
     }
-                  }
+        }
