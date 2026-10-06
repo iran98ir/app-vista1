@@ -1,233 +1,109 @@
 /* =========================================================
-   SplashActivity.java  —  صفحه‌ی Splash
+   SplashActivity.java  —  صفحه‌ی لود اولیه — Vista1 (MuMu)
    مسیر: app/src/main/java/app/vista/SplashActivity.java
-   =========================================================
-   📌 صفحه‌ی خوش‌آمد با انیمیشن نرم
-   📌 لود پس‌زمینه‌ی سایت در همین حین
-   📌 وقتی سایت لود شد → می‌ره MainActivity
-   📌 حداقل نمایش: 1.5 ثانیه
-   📌 حداکثر انتظار: 8 ثانیه
+   نسخه: 1.3.07
    ========================================================= */
 
 package app.vista;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
+import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SplashActivity extends AppCompatActivity {
 
-    // ===== زمان‌ها (میلی‌ثانیه) =====
-    private static final long MIN_DISPLAY_TIME = 1500L;
-    private static final long MAX_WAIT_TIME    = 8000L;
+    private static final long MIN_SPLASH_TIME_MS = 1500L;
+    private static final long MAX_SPLASH_TIME_MS = 8000L;
 
-    // ===== ویوها =====
-    private LinearLayout splashContent;
     private ImageView splashLogo;
     private TextView splashAppName;
-    private View splashDivider;
     private TextView splashWelcome;
-    private LinearLayout splashLoading;
-    private ProgressBar splashProgress;
     private TextView splashLoadingText;
+    private ProgressBar splashProgress;
 
-    // ===== کنترل =====
+    private long startTime;
+    private boolean navigated = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final AtomicBoolean hasNavigated = new AtomicBoolean(false);
-    private long splashStartTime = 0L;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // ===== اتصال ویوها =====
-        splashContent     = findViewById(R.id.splashContent);
-        splashLogo        = findViewById(R.id.splashLogo);
-        splashAppName     = findViewById(R.id.splashAppName);
-        splashDivider     = findViewById(R.id.splashDivider);
-        splashWelcome     = findViewById(R.id.splashWelcome);
-        splashLoading     = findViewById(R.id.splashLoading);
-        splashProgress    = findViewById(R.id.splashProgress);
+        startTime = System.currentTimeMillis();
+
+        splashLogo = findViewById(R.id.splashLogo);
+        splashAppName = findViewById(R.id.splashAppName);
+        splashWelcome = findViewById(R.id.splashWelcome);
         splashLoadingText = findViewById(R.id.splashLoadingText);
+        splashProgress = findViewById(R.id.splashProgress);
 
-        // ===== شروع زمان =====
-        splashStartTime = System.currentTimeMillis();
+        animateFadeIn(splashLogo, 0);
+        animateFadeIn(splashAppName, 200);
+        animateFadeIn(splashWelcome, 400);
+        animateFadeIn(splashLoadingText, 600);
 
-        // ===== مخفی کردن اولیه برای انیمیشن =====
-        setInitialAlphaZero();
-
-        // ===== اجرای انیمیشن ورود =====
-        playEntranceAnimation();
-
-        // ===== شروع لود پس‌زمینه سایت =====
-        startBackgroundPreload();
-
-        // ===== تایمر حداکثر انتظار =====
-        handler.postDelayed(() -> navigateToMain(false), MAX_WAIT_TIME);
+        startPreload();
     }
 
-    /**
-     * مخفی کردن همه‌ی عناصر برای شروع انیمیشن
-     */
-    private void setInitialAlphaZero() {
-        splashLogo.setAlpha(0f);
-        splashAppName.setAlpha(0f);
-        splashDivider.setAlpha(0f);
-        splashWelcome.setAlpha(0f);
-        splashLoading.setAlpha(0f);
-        splashContent.setScaleX(0.9f);
-        splashContent.setScaleY(0.9f);
+    private void animateFadeIn(View view, long delayMs) {
+        if (view == null) return;
+        view.setAlpha(0f);
+        AlphaAnimation anim = new AlphaAnimation(0f, 1f);
+        anim.setDuration(600);
+        anim.setStartOffset(delayMs);
+        anim.setFillAfter(true);
+        view.startAnimation(anim);
     }
 
-    /**
-     * اجرای انیمیشن ورود نرم
-     */
-    private void playEntranceAnimation() {
-
-        // ===== ۱. لوگو: scale + fade =====
-        ObjectAnimator logoAlpha = ObjectAnimator.ofFloat(splashLogo, View.ALPHA, 0f, 1f);
-        logoAlpha.setDuration(700);
-        logoAlpha.setInterpolator(new DecelerateInterpolator());
-
-        ObjectAnimator logoScaleX = ObjectAnimator.ofFloat(splashLogo, View.SCALE_X, 0.85f, 1f);
-        logoScaleX.setDuration(700);
-        logoScaleX.setInterpolator(new DecelerateInterpolator());
-
-        ObjectAnimator logoScaleY = ObjectAnimator.ofFloat(splashLogo, View.SCALE_Y, 0.85f, 1f);
-        logoScaleY.setDuration(700);
-        logoScaleY.setInterpolator(new DecelerateInterpolator());
-
-        // ===== ۲. نام اپ: fade + slide up =====
-        ObjectAnimator nameAlpha = ObjectAnimator.ofFloat(splashAppName, View.ALPHA, 0f, 1f);
-        nameAlpha.setDuration(600);
-        nameAlpha.setStartDelay(250);
-        nameAlpha.setInterpolator(new DecelerateInterpolator());
-
-        ObjectAnimator nameTranslateY = ObjectAnimator.ofFloat(splashAppName, View.TRANSLATION_Y, 20f, 0f);
-        nameTranslateY.setDuration(600);
-        nameTranslateY.setStartDelay(250);
-        nameTranslateY.setInterpolator(new DecelerateInterpolator());
-
-        // ===== ۳. خط جداکننده: scaleX =====
-        ObjectAnimator dividerScaleX = ObjectAnimator.ofFloat(splashDivider, View.SCALE_X, 0f, 1f);
-        dividerScaleX.setDuration(500);
-        dividerScaleX.setStartDelay(400);
-        dividerScaleX.setInterpolator(new DecelerateInterpolator());
-
-        ObjectAnimator dividerAlpha = ObjectAnimator.ofFloat(splashDivider, View.ALPHA, 0f, 0.6f);
-        dividerAlpha.setDuration(500);
-        dividerAlpha.setStartDelay(400);
-
-        // ===== ۴. متن خوش‌آمد: fade =====
-        ObjectAnimator welcomeAlpha = ObjectAnimator.ofFloat(splashWelcome, View.ALPHA, 0f, 0.75f);
-        welcomeAlpha.setDuration(600);
-        welcomeAlpha.setStartDelay(550);
-        welcomeAlpha.setInterpolator(new DecelerateInterpolator());
-
-        ObjectAnimator welcomeTranslateY = ObjectAnimator.ofFloat(splashWelcome, View.TRANSLATION_Y, 12f, 0f);
-        welcomeTranslateY.setDuration(600);
-        welcomeTranslateY.setStartDelay(550);
-        welcomeTranslateY.setInterpolator(new DecelerateInterpolator());
-
-        // ===== ۵. لودینگ: fade =====
-        ObjectAnimator loadingAlpha = ObjectAnimator.ofFloat(splashLoading, View.ALPHA, 0f, 1f);
-        loadingAlpha.setDuration(500);
-        loadingAlpha.setStartDelay(700);
-        loadingAlpha.setInterpolator(new DecelerateInterpolator());
-
-        // ===== اجرای همه با هم =====
-        AnimatorSet set = new AnimatorSet();
-        set.playTogether(
-            logoAlpha, logoScaleX, logoScaleY,
-            nameAlpha, nameTranslateY,
-            dividerScaleX, dividerAlpha,
-            welcomeAlpha, welcomeTranslateY,
-            loadingAlpha
-        );
-        set.start();
-    }
-
-    /**
-     * شروع لود پس‌زمینه‌ی سایت
-     */
-    private void startBackgroundPreload() {
-        PreloadManager.preload(this, new PreloadManager.PreloadCallback() {
+    private void startPreload() {
+        PreloadManager.preload(getApplicationContext(), new PreloadManager.PreloadCallback() {
             @Override
             public void onPageLoaded() {
-                runOnUiThread(() -> navigateToMain(true));
+                long elapsed = System.currentTimeMillis() - startTime;
+                long remaining = MIN_SPLASH_TIME_MS - elapsed;
+                if (remaining < 0) remaining = 0;
+                handler.postDelayed(() -> navigateToMain(true), remaining);
             }
 
             @Override
             public void onPageFailed() {
-                runOnUiThread(() -> navigateToMain(false));
+                long elapsed = System.currentTimeMillis() - startTime;
+                long remaining = MIN_SPLASH_TIME_MS - elapsed;
+                if (remaining < 0) remaining = 0;
+                handler.postDelayed(() -> navigateToMain(false), remaining);
             }
         });
+
+        handler.postDelayed(() -> {
+            if (!navigated) {
+                navigateToMain(false);
+            }
+        }, MAX_SPLASH_TIME_MS);
     }
 
-    /**
-     * رفتن به MainActivity با انیمیشن نرم
-     */
-    private void navigateToMain(boolean pageLoaded) {
-        if (!hasNavigated.compareAndSet(false, true)) {
-            return;
-        }
+    private void navigateToMain(boolean preloaded) {
+        if (navigated) return;
+        navigated = true;
 
-        handler.removeCallbacksAndMessages(null);
-
-        long elapsed = System.currentTimeMillis() - splashStartTime;
-        long remaining = MIN_DISPLAY_TIME - elapsed;
-
-        if (remaining > 0) {
-            handler.postDelayed(() -> performNavigation(pageLoaded), remaining);
-        } else {
-            performNavigation(pageLoaded);
-        }
-    }
-
-    /**
-     * اجرای واقعی انتقال
-     */
-    private void performNavigation(boolean pageLoaded) {
-        splashContent.animate()
-            .alpha(0f)
-            .scaleX(1.05f)
-            .scaleY(1.05f)
-            .setDuration(300)
-            .setInterpolator(new AccelerateDecelerateInterpolator())
-            .withEndAction(() -> {
-                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-                intent.putExtra("page_preloaded", pageLoaded);
-                startActivity(intent);
-                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                finish();
-            })
-            .start();
-    }
-
-    @Override
-    public void onBackPressed() {
-        // ===== توی Splash، back button کاری نکنه =====
+        Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+        intent.putExtra("page_preloaded", preloaded);
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        finish();
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
-           }
+}
