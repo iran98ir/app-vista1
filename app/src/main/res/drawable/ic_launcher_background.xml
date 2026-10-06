@@ -1,22 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- =========================================================
-     ic_launcher_background.xml  —  پس‌زمینه‌ی آیکون اپ
-     مسیر: app/src/main/res/drawable/ic_launcher_background.xml
-     ========================================================= -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- ===== پس‌زمینه‌ی سرمه‌ای ===== -->
-    <path
-        android:fillColor="#0D1B2E"
-        android:pathData="M0,0 L108,0 L108,108 L0,108 Z" />
+    <!-- پس‌زمینه: گرادیانت طلایی تیره لوکس -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0" android:startY="0"
+                android:endX="108" android:endY="108"
+                android:startColor="#8B3A52"
+                android:centerColor="#B65B72"
+                android:endColor="#6B2A40" />
+        </aapt:attr>
+    </path>
 
-    <!-- ===== هاله‌ی طلایی پایین ===== -->
+    <!-- افکت شیشه‌ای: هایلایت بالا-چپ -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="22" android:centerY="22"
+                android:gradientRadius="95"
+                android:startColor="#50FFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- افکت شیشه‌ای: سایه پایین-راست -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="95" android:centerY="95"
+                android:gradientRadius="85"
+                android:startColor="#35000000"
+                android:endColor="#00000000" />
+        </aapt:attr>
+    </path>
+
+    <!-- لبه‌ی شیشه‌ای -->
     <path
-        android:fillColor="#1AC4956A"
-        android:pathData="M0,108 L108,108 L108,54 Q54,90 0,54 Z" />
+        android:pathData="M0,0h108v108h-108z"
+        android:strokeWidth="2"
+        android:strokeColor="#55FFFFFF"
+        android:fillColor="#00000000" />
 
 </vector>
