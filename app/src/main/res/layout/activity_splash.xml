@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/splash_background">
 
-    <!-- ===== لوگو (آیکون اپ — ۲ برابر بزرگ‌تر) ===== -->
+    <!-- ===== لوگو ===== -->
     <ImageView
         android:id="@+id/splashLogo"
         android:layout_width="240dp"
@@ -20,18 +20,17 @@
         app:layout_constraintVertical_bias="0.35"
         android:contentDescription="@string/app_name" />
 
-    <!-- ===== اسم اپ (۲ برابر درشت‌تر — ۵۶sp) ===== -->
+    <!-- ===== اسم اپ — سفید تا دیده بشه ===== -->
     <TextView
         android:id="@+id/splashAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="@string/app_name"
-        android:textColor="@color/gold_primary"
+        android:textColor="#FFFFFF"
         android:textSize="56sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:letterSpacing="0.05"
         app:layout_constraintTop_toBottomOf="@id/splashLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -42,28 +41,26 @@
         android:layout_width="80dp"
         android:layout_height="2dp"
         android:layout_marginTop="20dp"
-        android:background="@color/gold_primary"
+        android:background="#FFFFFF"
         app:layout_constraintTop_toBottomOf="@id/splashAppName"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ===== خوش‌آمد (۵۰٪ درشت‌تر — ۲۷sp) ===== -->
+    <!-- ===== خوش‌آمد — سفید ===== -->
     <TextView
         android:id="@+id/splashWelcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
         android:text="@string/splash_welcome"
-        android:textColor="@color/text_inverse"
+        android:textColor="#FFFFFF"
         android:textSize="27sp"
         android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/splashDivider"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ===== ProgressBar ===== -->
+    <!-- ===== ProgressBar — سفید روی رزگلد ===== -->
     <ProgressBar
         android:id="@+id/splashProgress"
         style="?android:attr/progressBarStyleHorizontal"
@@ -71,19 +68,19 @@
         android:layout_height="4dp"
         android:layout_marginTop="48dp"
         android:indeterminate="true"
-        android:indeterminateTint="@color/gold_primary"
+        android:indeterminateTint="#FFFFFF"
         app:layout_constraintTop_toBottomOf="@id/splashWelcome"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ===== متن لودینگ (۵۰٪ درشت‌تر — ۲۴sp) ===== -->
+    <!-- ===== لودینگ — سفید ===== -->
     <TextView
         android:id="@+id/splashLoadingText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/splash_loading"
-        android:textColor="@color/text_inverse"
+        android:textColor="#FFFFFF"
         android:textSize="24sp"
         android:alpha="0.9"
         app:layout_constraintTop_toBottomOf="@id/splashProgress"
