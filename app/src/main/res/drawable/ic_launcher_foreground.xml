@@ -6,7 +6,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- سیلوئت دختر با دست بلند — مینیمال و لوکس -->
+    <!-- سیلوئت دختر با دست بلند — صورتی مینیمال -->
     <path
         android:pathData="M54,32
             a6,6 0 1,0 0.01,0
@@ -25,7 +25,7 @@
             l3,2
             l-10,16
             z"
-        android:fillColor="#FFFFFF"
+        android:fillColor="#FFB8CC"
         android:fillAlpha="0.95" />
 
     <!-- درخشش ملایم اطراف -->
