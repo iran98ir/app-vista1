@@ -1,5 +1,5 @@
 /* =========================================================
-   MainActivity.java  —  صفحه‌ی اصلی (WebView) — Vista2
+   MainActivity.java  —  صفحه‌ی اصلی (WebView) — Vista1 (MuMu)
    مسیر: app/src/main/java/app/vista/MainActivity.java
    نسخه: 1.3.07
    ========================================================= */
@@ -56,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     // ====================================================
-    // 🔴 URL سایت — عوض شده برای Vista2
+    // 🔴 URL سایت — Vista1 (MuMu)
     // ====================================================
-    private static final String BASE_URL = "https://rosha-24.ir/app/app2/";
+    private static final String BASE_URL = "https://rosha-24.ir/app/app1/";
     private static final String BASE_DOMAIN = "rosha-24.ir";
 
     private static final String TEL_PREFIX = "tel:";
@@ -179,14 +179,13 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowUniversalAccessFromFileURLs(false);
 
         // ====================================================
-        // 🔴 برای حل مشکل iframe / لینک‌های ورود
+        // 🔴 حل مشکل iframe / لینک‌های ورود
         // ====================================================
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
         settings.setSupportMultipleWindows(false);
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
         webView.setBackgroundColor(colorBg);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
@@ -195,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
         cookieManager.setAcceptCookie(true);
 
         // ====================================================
-        // 🔴 برای حل مشکل کوکی / لینک‌های ورود
+        // 🔴 حل مشکل کوکی / لینک‌های ورود
         // ====================================================
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
@@ -333,19 +332,12 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        // 2️⃣ http / https
+        // 2️⃣ http / https → همه داخل WebView
         if (lowerUrl.startsWith("http://") || lowerUrl.startsWith("https://")) {
-            // ⚠️ همه‌ی لینک‌های http/https رو داخل WebView باز کن
-            // (به‌جز دامنه‌های ناشناس که در ادامه اومده)
-            if (isInternalUrl(url)) {
-                return false; // داخل WebView بمون
-            }
-            // دامنه‌های خارجی → توی خود WebView باز کن (نه بیرون)
-            // چون کاربر ممکنه نخواد بره مرورگر
             return false;
         }
 
-        // 3️⃣ intent:// → بازش کن با مرورگر یا اپ مربوطه
+        // 3️⃣ intent://
         if (lowerUrl.startsWith("intent:")) {
             try {
                 Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
@@ -354,13 +346,12 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
             } catch (Exception e) {
-                // اگه اپ مقصد نصب نبود، بی‌خیال شو
                 return true;
             }
             return true;
         }
 
-        // 4️⃣ بقیه پروتکل‌ها (مثل custom scheme) رو نادیده بگیر
+        // 4️⃣ بقیه پروتکل‌ها رو نادیده بگیر
         return true;
     }
 
@@ -495,4 +486,4 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onDestroy();
     }
-                   }
+                  }
